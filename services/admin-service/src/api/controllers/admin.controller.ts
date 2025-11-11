@@ -4,12 +4,13 @@ import getBuffer from "../../utils/dataUri.util.js";
 import cloudinary from "cloudinary";
 import { sql } from "../../core/database/index.js";
 import redisClient from "../../core/database/redis.js";
+import { SongProducer } from "../../producers/song.producer.js";
 
 interface AuthenticatedRequest extends Request {
     user?: {
-        _id: string,
-        role: string
-    }
+        _id: string;
+        role: string;
+    };
 }
 
 //Utility function for safe cache invalidation
@@ -25,9 +26,11 @@ async function invalidateCache(keys: string[]) {
     }
 }
 
-
+/**
+ * Add a new album
+ */
 export const addAlbum = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
-    if (req.user?.role !== 'admin')
+    if (req.user?.role !== "admin")
         return res.status(401).json({ message: "Unauthorized: Admins only" });
 
     const { title, description } = req.body;
@@ -52,15 +55,31 @@ export const addAlbum = TryCatch(async (req: AuthenticatedRequest, res: Response
     //invalidate relevant caches
     await invalidateCache(["albums"]);
 
+    // 🆕 PUBLISH ALBUM CREATED EVENT TO RABBITMQ
+    try {
+        await SongProducer.publishAlbumCreated({
+            albumId: result[0].id,
+            title: result[0].title,
+            description: result[0].description,
+            thumbnail: result[0].thumbnail,
+        });
+        console.log("✅ Album created event published to RabbitMQ");
+    } catch (error) {
+        console.error("❌ Failed to publish album created event:", error);
+        //Don’t fail the request if message publishing fails
+    }
+
     res.json({
         message: "Album created successfully",
         album: result[0],
     });
 });
 
-
+/**
+ * Add a new song
+ */
 export const addSong = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
-    if (req.user?.role !== 'admin')
+    if (req.user?.role !== "admin")
         return res.status(401).json({ message: "Unauthorized: Admins only" });
 
     const { title, description, album } = req.body;
@@ -81,20 +100,42 @@ export const addSong = TryCatch(async (req: AuthenticatedRequest, res: Response)
         resource_type: "video",
     });
 
-    await sql`
-        INSERT INTO songs(title, description, audio, album_id)
+    const result = await sql`
+        INSERT INTO songs (title, description, audio, album_id)
         VALUES (${title}, ${description}, ${cloude.secure_url}, ${album})
+        RETURNING *
     `;
 
     //invalidate relevant caches
     await invalidateCache(["songs", `album_songs_${album}`]);
 
-    res.json({ message: "Song added successfully" });
+    // 🆕 PUBLISH SONG UPLOADED EVENT TO RABBITMQ
+    try {
+        await SongProducer.publishSongUploaded({
+            songId: result[0].id,
+            title: result[0].title,
+            description: result[0].description,
+            audio: result[0].audio,
+            thumbnail: result[0].thumbnail,
+            albumId: album ? Number(album) : null,
+        });
+        console.log("✅ Song uploaded event published to RabbitMQ");
+    } catch (error) {
+        console.error("❌ Failed to publish song uploaded event:", error);
+        //Don't fail the request if message publishing fails
+    }
+
+    res.json({
+        message: "Song added successfully",
+        song: result[0],
+    });
 });
 
-
+/**
+ * Add or update song thumbnail
+ */
 export const addThumbnail = TryCatch(async (req: AuthenticatedRequest, res) => {
-    if (req.user?.role !== 'admin')
+    if (req.user?.role !== "admin")
         return res.status(401).json({ message: "Unauthorized: Admins only" });
 
     const song = await sql`SELECT * FROM songs WHERE id = ${req.params.id}`;
@@ -119,7 +160,7 @@ export const addThumbnail = TryCatch(async (req: AuthenticatedRequest, res) => {
         RETURNING *
     `;
 
-    //invalidate caches related to songs and its album
+    // Invalidate caches related to songs and its album
     const albumId = result[0]?.album_id;
     await invalidateCache(["songs", `album_songs_${albumId}`]);
 
@@ -129,9 +170,11 @@ export const addThumbnail = TryCatch(async (req: AuthenticatedRequest, res) => {
     });
 });
 
-
-export const deleteAlbum = TryCatch(async (req: AuthenticatedRequest, res) => {
-    if (req.user?.role !== 'admin')
+/**
+ * Delete an album
+ */
+export const deleteAlbum = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
+    if (req.user?.role !== "admin")
         return res.status(401).json({ message: "Unauthorized: Admins only" });
 
     const { id } = req.params;
@@ -143,15 +186,17 @@ export const deleteAlbum = TryCatch(async (req: AuthenticatedRequest, res) => {
     await sql`DELETE FROM songs WHERE album_id=${id}`;
     await sql`DELETE FROM albums WHERE id=${id}`;
 
-    //Invalidate caches for albums, songs, and this specific album’s songs
+    //Invalidate caches for albums, songs, and this specific album's songs
     await invalidateCache(["albums", "songs", `album_songs_${id}`]);
 
     res.json({ message: "Album deleted successfully" });
 });
 
-
-export const deleteSong = TryCatch(async (req: AuthenticatedRequest, res) => {
-    if (req.user?.role !== 'admin')
+/**
+ * Delete a song
+ */
+export const deleteSong = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
+    if (req.user?.role !== "admin")
         return res.status(401).json({ message: "Unauthorized: Admins only" });
 
     const { id } = req.params;
@@ -164,8 +209,20 @@ export const deleteSong = TryCatch(async (req: AuthenticatedRequest, res) => {
 
     await sql`DELETE FROM songs WHERE id=${id}`;
 
-    //invalidate caches related to all songs and this album’s songs
+    //Invalidate caches related to all songs and this album's songs
     await invalidateCache(["songs", `album_songs_${albumId}`]);
+
+    // 🆕 PUBLISH SONG DELETED EVENT TO RABBITMQ
+    try {
+        await SongProducer.publishSongDeleted({
+            songId: Number(id),
+            albumId: albumId ? Number(albumId) : null,
+        });
+        console.log("✅ Song deleted event published to RabbitMQ");
+    } catch (error) {
+        console.error("❌ Failed to publish song deleted event:", error);
+        //Don't fail the request if message publishing fails
+    }
 
     res.json({ message: "Song deleted successfully" });
 });

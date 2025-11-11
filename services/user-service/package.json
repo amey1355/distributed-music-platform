@@ -2,12 +2,13 @@
   "name": "user-service",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "concurrently \"tsc -w\" \"nodemon dist/index.js\" "
+    "start": "node dist/server.js",
+    "serve": "npm run build && node dist/server.js",
+    "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\" "
   },
   "keywords": [],
   "author": "",

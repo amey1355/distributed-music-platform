@@ -6,7 +6,4 @@ export const config = {
   port: process.env.PORT || 4000,
   redis_password: process.env.Redis_Password as string,
   // userServiceUrl: process.env.User_Service_URL as string,
-  // cl_name: process.env.CLOUD_NAME,
-  // cl_api_key: process.env.CLOUD_API_KEY,
-  // cl_api_secret: process.env.CLOUD_API_SECRET,
 };

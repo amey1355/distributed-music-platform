@@ -1,0 +1,22 @@
+{
+  "name": "worker-service",
+  "version": "1.0.0",
+  "description": "Background worker service for processing music platform events (RabbitMQ consumer)",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+  "build": "tsc",
+  "start": "node dist/index.js",
+  "dev": "node --loader ts-node/esm src/index.ts"
+},
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/node": "^24.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

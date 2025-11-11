@@ -1,6 +1,6 @@
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
 import TryCatch from "../middlewares/tryCatch.middleware.js";
-import { User } from "../models/user.model.js";
+import { User } from "../../core/database/user.model.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
