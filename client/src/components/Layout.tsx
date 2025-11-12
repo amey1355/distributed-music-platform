@@ -1,4 +1,6 @@
-import React, { ReactNode } from "react";
+import React from "react";
+import type { ReactNode } from 'react';
+
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Player from "./Player";

@@ -1,12 +1,13 @@
 import axios from "axios";
 import React, {
   createContext,
-  ReactNode,
   useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
+import type { ReactNode } from 'react';
+
 
 const server = "http://localhost:8000";
 

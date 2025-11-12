@@ -1,4 +1,5 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import type { ChangeEvent, FormEvent } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { useUserData } from "../context/UserContext";
 import { useSongData } from "../context/SongContext";

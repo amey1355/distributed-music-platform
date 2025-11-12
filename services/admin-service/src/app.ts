@@ -20,7 +20,8 @@ process.on("SIGINT", async () => {
   process.exit(0);
 });
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
 app.use("/api/v1", adminRoutes);

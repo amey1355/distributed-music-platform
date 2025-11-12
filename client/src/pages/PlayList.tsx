@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { Song, useSongData } from "../context/SongContext";
+import { useSongData } from "../context/SongContext";
+import type { Song } from "../context/SongContext";
 import { useUserData } from "../context/UserContext";
 import { FaBookmark, FaPlay } from "react-icons/fa";
 import Loading from "../components/Loading";
