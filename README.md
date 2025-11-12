@@ -200,7 +200,7 @@ View the [latest CI runs](https://github.com/amey1355/distributed-music-platform
 
 Below is the complete architecture of the **Distributed Music Platform**:
 
-![Architecture Diagram](./client/public/architecture-diagram.png
+![Architecture Diagram](./client/public/architecture-diagram.png)
 
 > The platform uses a microservice architecture orchestrated via Docker Compose, 
 > supporting REST APIs and event-driven workflows with RabbitMQ. 
