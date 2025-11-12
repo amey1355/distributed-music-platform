@@ -13,8 +13,6 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    outputs:
-      built: ${{ steps.set.outputs.built }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,57 +35,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js ${{ env.NODE_VERSION }} for root + client
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
 
       # -------- Admin service build ----------
       - name: Install & build admin-service
         working-directory: ./services/admin-service
         run: |
-          npm ci
+          npm install
           npm run build
 
       # -------- User service build ----------
       - name: Install & build user-service
         working-directory: ./services/user-service
         run: |
-          npm ci
+          npm install
           npm run build
 
       # -------- Song service build ----------
       - name: Install & build song-service
         working-directory: ./services/song-service
         run: |
-          npm ci
+          npm install
           npm run build
 
       # -------- Worker service build ----------
       - name: Install & build worker-service
         working-directory: ./services/worker-service
         run: |
-          npm ci
+          npm install
           npm run build
 
       # -------- Client build ----------
       - name: Install & build client
         working-directory: ./client
         run: |
-          npm ci
+          npm install
           npm run build
 
       # -------- Build Docker images (no push) ----------
-      - name: Build Docker images (admin, user, song, worker, client)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          load: false
-          # we will build separate targets via build args to keep it explicit
-          # Note: we pass multiple build contexts by running separate build-push jobs below
-
       - name: Build admin-service image
         uses: docker/build-push-action@v5
         with:
@@ -129,4 +117,4 @@ jobs:
           tags: distributed-music-platform-client:ci-${{ github.sha }}
 
       - name: CI finished
-        run: echo "Builds completed — Docker images built locally in runner (not pushed)."
+        run: echo "✅ Builds completed — Docker images built locally in runner (not pushed)."
