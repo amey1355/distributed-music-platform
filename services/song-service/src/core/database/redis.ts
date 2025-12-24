@@ -6,8 +6,8 @@ export const redisClient = useCloud
   ? redis.createClient({
       password: config.redis_password,
       socket: {
-        host: "redis-10487.crce179.ap-south-1-1.ec2.redns.redis-cloud.com",
-        port: 10487,
+        host: "redis-16456.crce263.ap-south-1-1.ec2.cloud.redislabs.com",
+        port: 16456,
       },
     })
   : redis.createClient({

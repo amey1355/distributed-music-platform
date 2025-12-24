@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import axios from "axios";
 import { config } from "../../core/config/index.js";
 
-interface IUser{
+interface IUser {
     _id: string;
     name: string;
     email: string;
@@ -11,29 +11,46 @@ interface IUser{
     playlist: string[];
 }
 
-interface AuthenticatedRequest extends Request{
+interface AuthenticatedRequest extends Request {
     user?: IUser | null;
 }
 
-export const isAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const token = req.headers.token as string;
-        if(!token){
-            res.status(403).json({message: "Please login"});
-            return;
-        }
+export const isAuth = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
 
-        const {data} = await axios.get(`${config.userServiceUrl}/api/v1/user/me`, {
-            headers: {
-                token,
-            }
-        });
-        req.user = data;
-
-        next();
-    } catch (error) {
-        res.status(403).json({ message: "Please login" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(403).json({ message: "Please login" });
+      return;
     }
+
+    const token = authHeader.split(" ")[1];
+
+    const { data } = await axios.get(
+      `${config.userServiceUrl}/api/v1/user/me`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    req.user = data;
+    next();
+  } catch (error: any) {
+  console.error(
+    "Auth failed calling user-service:",
+    error.response?.status,
+    error.response?.data,
+    error.message
+  );
+
+  res.status(403).json({ message: "Please login" });
+}
 };
 
 

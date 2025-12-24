@@ -7,7 +7,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { MdDelete } from "react-icons/md";
 
-const server = "http://localhost:7000";
+// const server = "http://localhost:7000";
+const server = import.meta.env.VITE_ADMIN_URL;
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -44,8 +45,8 @@ const Admin = () => {
         formData,
         {
           headers: {
-            token: localStorage.getItem("token"),
-          },
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
         }
       );
 
@@ -77,8 +78,8 @@ const Admin = () => {
     try {
       const { data } = await axios.post(`${server}/api/v1/song/new`, formData, {
         headers: {
-          token: localStorage.getItem("token"),
-        },
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
       });
 
       toast.success(data.message);
@@ -108,8 +109,8 @@ const Admin = () => {
         formData,
         {
           headers: {
-            token: localStorage.getItem("token"),
-          },
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
         }
       );
 
@@ -129,8 +130,8 @@ const Admin = () => {
       try {
         const { data } = await axios.delete(`${server}/api/v1/album/${id}`, {
           headers: {
-            token: localStorage.getItem("token"),
-          },
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
         });
 
         toast.success(data.message);
@@ -150,8 +151,8 @@ const Admin = () => {
       try {
         const { data } = await axios.delete(`${server}/api/v1/song/${id}`, {
           headers: {
-            token: localStorage.getItem("token"),
-          },
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
         });
 
         toast.success(data.message);
