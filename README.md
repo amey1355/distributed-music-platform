@@ -211,7 +211,7 @@ Below is the complete architecture of the **Distributed Music Platform**:
 
 ## 📸 Preview
 
-*(Coming Soon — Frontend & Admin Dashboard Screenshots)*
+![Output](./client/public/test-output.png)
 
 ---
 
